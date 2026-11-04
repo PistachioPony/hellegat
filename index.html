@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hellegat: Between the river's breaths</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="style.css">
+<script src="app.js" defer></script>
+<script src="map.js" defer></script>
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <p class="eyebrow">East River, New York</p>
+    <h1>Hellegat</h1>
+    <p class="tagline">Between the river's breaths</p>
+  </header>
+
+  <img class="banner" src="hell-gate-1775.jpg" width="1840" height="596" alt="Engraving of Hell Gate in 1775: ships pass rough water and rocks while a man on the shore points with a stick and another draws.">
+
+  <section class="intro">
+    <p>You have reached Hellegat, a spot in New York's East River once feared by mariners. You will wait, like sailors past, for slack water. And when the water calms, it will reward you with an image from the depths, surfacing and then sinking back forever.</p>
+    <p>While you wait for the next slack, you can observe the river's rise and fall, and a map of the tide reaching Hellegat from two directions. You can <a href="about.html">learn more about the project here</a>.</p>
+  </section>
+
+  <section class="slack">
+    <div class="countdown">
+      <span class="k" id="slack-label">Next slack</span>
+      <span class="count" id="slack-count">…</span>
+      <span class="s" id="slack-when"></span>
+    </div>
+    <div class="today">
+      <span class="k">Today's slack</span>
+      <ol id="slacks"></ol>
+    </div>
+  </section>
+
+  <section class="reveal" id="reveal" hidden>
+    <p class="reveal-time"><span id="reveal-count"></span> until the river exhales</p>
+    <div class="reveal-found" id="reveal-found" hidden>
+      <img id="reveal-img" alt="">
+      <div class="reveal-caption">
+        <p class="reveal-title" id="reveal-title"></p>
+        <p class="s" id="reveal-info"></p>
+        <p class="s">Right-click or press and hold to save.</p>
+      </div>
+    </div>
+    <p class="s" id="reveal-missing" hidden>The river's image couldn't be reached this time.</p>
+  </section>
+
+  <section class="readout">
+    <div class="cell">
+      <span class="k"><i class="sw bat"></i>The Battery</span>
+      <span class="v" id="v-bat">…</span>
+      <span class="s" id="s-bat">harbor side</span>
+    </div>
+    <div class="cell">
+      <span class="k"><i class="sw kp"></i>Kings Point</span>
+      <span class="v" id="v-kp">…</span>
+      <span class="s" id="s-kp">Sound side</span>
+    </div>
+    <div class="cell">
+      <span class="k">Current at Hell Gate</span>
+      <span class="v" id="v-cur">…</span>
+      <span class="s" id="s-cur"></span>
+    </div>
+  </section>
+
+  <figure class="chart-fig">
+    <canvas id="chart" aria-label="Chart of water level at the Battery and Kings Point, centered on the next slack at Hell Gate"></canvas>
+    <figcaption class="legend">
+      <span><i class="sw bat"></i>The Battery Live</span>
+      <span><i class="sw kp"></i>Kings Point Live</span>
+      <span><i class="sw bat faded"></i><i class="sw kp faded"></i>Predicted</span>
+      <span><i class="sw band"></i>Slack water = current under half a knot</span>
+    </figcaption>
+    <div class="status">
+      <span id="updated">Loading from NOAA…</span>
+      <span class="sources">Live Water levels measured by NOAA CO-OPS: The Battery 8518750, Kings Point 8516945. The water ahead, the current, and slack times are predicted from NOAA data (Hell Gate NYH1924).</span>
+    </div>
+  </figure>
+
+  <figure class="chart-fig map-fig" id="tide-map-fig">
+    <canvas id="tide-map" aria-label="Map of New York Harbor, Long Island and Long Island Sound. One ocean tide wraps around Long Island and reaches Hell Gate from both ends, hours apart."></canvas>
+    <figcaption class="legend">
+      <button id="tide-pause" type="button">Pause</button>
+      <span>A simplified picture of how the tide moves, not the river right now. Coastline from the US Census.</span>
+    </figcaption>
+  </figure>
+
+  <footer class="site-foot"><a href="about.html">About</a></footer>
+</main>
+</body>
+</html>
