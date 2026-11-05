@@ -308,7 +308,7 @@
       "DTSTART:" + icsStamp(slack.begins),
       "DTEND:" + icsStamp(slack.ends),
       "SUMMARY:Hellegat Slack",
-      "DESCRIPTION:RIVER REVEALS TREASURE SOON STOP DO NOT MISS CHANCE STOP MAY NEVER REVEAL AGAIN STOP GOTO HELLEGAT.MARIASAHA.COM STOP 73",
+      "DESCRIPTION:RIVER REVEALS TREASURE SOON STOP DO NOT MISS CHANCE STOP MAY NEVER REVEAL AGAIN STOP GOTO https://hellegat.mariasaha.com STOP 73",
       "URL:https://hellegat.mariasaha.com",
       "BEGIN:VALARM",
       "ACTION:DISPLAY",
