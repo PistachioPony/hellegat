@@ -304,8 +304,11 @@
     if (begun) el("reveal-count").textContent = fmtCount(slack.ends - now);
     el("slack-when").textContent = begun ? "Until " + clock(slack.ends) : "The unseen surfaces, until the river exhales.";
 
-    const today = river.slacks.filter(s => nyDay(s.t) === nyDay(now));
-    el("slacks").innerHTML = today.map(s => {
+    // The list shows the day of the next slack: today until the last one ends, then tomorrow.
+    const day = nyDay(slack.t);
+    el("slack-day").textContent = day === nyDay(now) ? "Today's slack" : "Tomorrow's slack";
+    const shown = river.slacks.filter(s => nyDay(s.t) === day);
+    el("slacks").innerHTML = shown.map(s => {
       const state = s.ends <= now ? "past" : s !== slack ? "later" : begun ? "now" : "next";
       return `<li class="${state}"><span>${clock(s.begins)} to ${clock(s.ends)}</span><span>${state === "later" ? "" : state}</span></li>`;
     }).join("");
