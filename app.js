@@ -24,6 +24,7 @@
   const pad = n => String(n).padStart(2, "0");
   const noaaDate = ms => { const d = new Date(ms); return d.getUTCFullYear() + pad(d.getUTCMonth() + 1) + pad(d.getUTCDate()); };
   const noaaStamp = ms => { const d = new Date(ms); return noaaDate(ms) + " " + pad(d.getUTCHours()) + ":" + pad(d.getUTCMinutes()); };
+  const icsStamp = ms => { const d = new Date(ms); return noaaDate(ms) + "T" + pad(d.getUTCHours()) + pad(d.getUTCMinutes()) + "00Z"; };
   // We ask NOAA for GMT, so "2026-10-29 16:37" is read as UTC and shown in New York time.
   const parseTime = s => Date.parse(s.replace(" ", "T") + ":00Z");
   const clock = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit" }).format;
@@ -148,6 +149,7 @@
   const chart = document.getElementById("chart"), ctx = chart.getContext("2d");
   let chartW = 600, chartH = 300, C = {}, river = null;
   let arrival = null; // when the arrival started, while it's running
+  let slacksHtml = ""; // the slack list as last written, so it's only rewritten when it changes
 
   function sizeChart() {
     const dpr = window.devicePixelRatio || 1;
@@ -293,6 +295,40 @@
     el("s-cur").textContent = state + (slack && state !== "slack" ? " · slack at " + clock(slack.begins) : "");
   }
 
+  // One slack as a calendar event, in the .ics format. Times are written in UTC (the Z), and each calendar shows them in its own time zone.
+  // The lines are kept in an array and joined with \r\n, the line ending the format asks for.
+  function calendarText(slack) {
+    return [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "PRODID:-//Hellegat//Remind Me//EN",
+      "BEGIN:VEVENT",
+      "UID:" + icsStamp(slack.begins) + "@hellegat.mariasaha.com",
+      "DTSTAMP:" + icsStamp(Date.now()),
+      "DTSTART:" + icsStamp(slack.begins),
+      "DTEND:" + icsStamp(slack.ends),
+      "SUMMARY:Hellegat Slack",
+      "DESCRIPTION:RIVER REVEALS TREASURE SOON STOP DO NOT MISS CHANCE STOP MAY NEVER REVEAL AGAIN STOP GOTO HELLEGAT.MARIASAHA.COM STOP 73",
+      "URL:https://hellegat.mariasaha.com",
+      "BEGIN:VALARM",
+      "ACTION:DISPLAY",
+      "DESCRIPTION:Hellegat Slack",
+      "TRIGGER:-PT5M",
+      "END:VALARM",
+      "END:VEVENT",
+      "END:VCALENDAR"
+    ].join("\r\n");
+  }
+
+  // The user can save a slack to their calendar. The ICS format is a simple text file, and the browser downloads it.
+  function saveCalendarFile(name, text) {
+    const blob = new Blob([text], { type: "text/calendar" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = name; a.click();
+    URL.revokeObjectURL(url);
+  }
+
   // The countdown to the next edge of slack, and the list of today's slacks in New York time.
   function updateSlack() {
     if (!river) return;
@@ -308,10 +344,15 @@
     const day = nyDay(slack.t);
     el("slack-day").textContent = day === nyDay(now) ? "Today's slack" : "Tomorrow's slack";
     const shown = river.slacks.filter(s => nyDay(s.t) === day);
-    el("slacks").innerHTML = shown.map(s => {
+    // Past and current slacks are labeled; every future slack gets a button that remembers its own times.
+    // The list is rebuilt every second but only written to the page when it changes, so a click on a button isn't lost mid-rebuild.
+    const html = shown.map(s => {
       const state = s.ends <= now ? "past" : s !== slack ? "later" : begun ? "now" : "next";
-      return `<li class="${state}"><span>${clock(s.begins)} to ${clock(s.ends)}</span><span>${state === "later" ? "" : state}</span></li>`;
+      const label = state === "past" || state === "now" ? state
+        : `<button type="button" data-begins="${s.begins}" data-ends="${s.ends}">remind me</button>`;
+      return `<li class="${state}"><span>${clock(s.begins)} to ${clock(s.ends)}</span><span>${label}</span></li>`;
     }).join("");
+    if (html !== slacksHtml) el("slacks").innerHTML = slacksHtml = html;
   }
 
   // What the water actually did at time t, or null if NOAA hasn't reported it yet.
@@ -431,6 +472,15 @@
       el("updated").textContent = "Couldn't reach NOAA (" + err.message + "). Trying again in 6 minutes.";
     }
   }
+
+  // One listener on the slack list handles every remind me button. The buttons are replaced whenever the list changes,
+  // but the list itself stays, and a click on a button bubbles up to it.
+  el("slacks").addEventListener("click", e => {
+    const button = e.target.closest("button");
+    if (!button) return;
+    const slack = { begins: Number(button.dataset.begins), ends: Number(button.dataset.ends) };
+    saveCalendarFile("hellegat-slack-" + nyDay(slack.begins) + ".ics", calendarText(slack));
+  });
 
   new ResizeObserver(sizeChart).observe(document.querySelector(".wrap"));
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);

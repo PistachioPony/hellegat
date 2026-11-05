@@ -48,15 +48,18 @@ h1 a { color: inherit; text-decoration: none; }
 .today li { display: flex; justify-content: space-between; gap: 12px; padding: 2px 0; }
 .today li.past { color: var(--muted); }
 .today li.next, .today li.now { font-weight: 500; }
+/* Remind me has the same outlined look as the map's Pause button, with less padding so its row is no taller than the others. */
+.today button { font: inherit; color: var(--ink); background: transparent; border: 1px solid var(--rule); border-radius: 3px; padding: 0 8px; cursor: pointer; }
 
 /* While the image is up it covers the whole page, so fading in is a fade from the river, and it needs no scrolling. */
 .reveal {
   position: fixed; inset: 0; z-index: 10; overflow: auto;
-  display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 12px;
+  display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 12px;
   padding: 16px; text-align: center;
   background: var(--paper); animation: surface 2.5s ease-out;
 }
 .reveal p { margin: 4px 0 0; }
+.reveal-welcome { max-width: 640px; justify-self: center; text-align: left; }
 .reveal-time { font-family: var(--mono); font-size: 14px; font-variant-numeric: tabular-nums; color: var(--muted); }
 .reveal-found { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; min-height: 0; }
 .reveal img { flex: 0 1 auto; min-height: 0; max-width: 100%; object-fit: contain; }
