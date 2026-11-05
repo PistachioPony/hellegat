@@ -102,6 +102,8 @@ canvas { display: block; width: 100%; }
 
 .site-foot { font-size: 13px; color: var(--muted); }
 .site-foot a, .about section a, .intro a { color: inherit; text-underline-offset: 2px; }
+/* A button that does something on the page, dressed like the links around it. */
+button.link { font: inherit; color: inherit; background: none; border: 0; padding: 0; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 
 /* The About page: a narrower column, for reading */
 .about { max-width: 640px; font-size: 16px; line-height: 1.65; }

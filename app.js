@@ -475,11 +475,17 @@
 
   // One listener on the slack list handles every remind me button. The buttons are replaced whenever the list changes,
   // but the list itself stays, and a click on a button bubbles up to it.
+  const remind = slack => saveCalendarFile("hellegat-slack-" + nyDay(slack.begins) + ".ics", calendarText(slack));
   el("slacks").addEventListener("click", e => {
     const button = e.target.closest("button");
     if (!button) return;
-    const slack = { begins: Number(button.dataset.begins), ends: Number(button.dataset.ends) };
-    saveCalendarFile("hellegat-slack-" + nyDay(slack.begins) + ".ics", calendarText(slack));
+    remind({ begins: Number(button.dataset.begins), ends: Number(button.dataset.ends) });
+  });
+
+  // The intro's reminder is for the next slack that hasn't begun, so during slack it skips ahead to the following one.
+  el("remind-next").addEventListener("click", () => {
+    const next = river && river.slacks.find(s => s.begins > Date.now());
+    if (next) remind(next);
   });
 
   new ResizeObserver(sizeChart).observe(document.querySelector(".wrap"));
