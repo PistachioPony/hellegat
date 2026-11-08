@@ -372,8 +372,11 @@
     return riverPlace(await riverHash(text), count);
   }
 
+  // Two sizes of the same image. sharpUrl asks NYPL's IIIF server for it to fit within 1600 pixels, about twice as sharp,
+  // so words on menus and sheet music can be read. About 1 in 20 images isn't on that server, so imageUrl, 760 pixels, is the fallback.
+  const sharpUrl = id => `https://iiif.nypl.org/iiif/2/${encodeURIComponent(id)}/full/!1600,1600/0/default.jpg`;
   const imageUrl = id => `https://images.nypl.org/index.php?id=${encodeURIComponent(id)}&t=w`;
-  // The item's own page at NYPL, where the image lives with its description. Not the image file, which is imageUrl.
+  // The item's own page at NYPL, where the image lives with its description. Not the image file, which is sharpUrl or imageUrl.
   const itemPage = uuid => `https://digitalcollections.nypl.org/items/${encodeURIComponent(uuid)}`;
 
   // Waits for an image to load, and gives up after IMAGE_WAIT so a slow link can't hang the reveal.
@@ -392,8 +395,10 @@
       const n = (place + i) % meta.count;
       const piece = await (await fetch(`data/${Math.floor(n / meta.shardSize)}.json`)).json();
       const [id, itemIndex] = piece.images[n % meta.shardSize];
-      const url = imageUrl(id);
-      if (await imageLoads(url)) return { url, item: piece.items[itemIndex] };
+      // The sharp version first, then the smaller one of the same image, so the river's choice holds whenever the image exists at all.
+      for (const url of [sharpUrl(id), imageUrl(id)]) {
+        if (await imageLoads(url)) return { url, item: piece.items[itemIndex] };
+      }
     }
     return null;
   }
