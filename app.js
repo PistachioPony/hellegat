@@ -373,6 +373,8 @@
   }
 
   const imageUrl = id => `https://images.nypl.org/index.php?id=${encodeURIComponent(id)}&t=w`;
+  // The item's own page at NYPL, where the image lives with its description. Not the image file, which is imageUrl.
+  const itemPage = uuid => `https://digitalcollections.nypl.org/items/${encodeURIComponent(uuid)}`;
 
   // Waits for an image to load, and gives up after IMAGE_WAIT so a slow link can't hang the reveal.
   function imageLoads(url) {
@@ -397,10 +399,12 @@
   }
 
   function showImage(found) {
-    const [title, date, maker] = found.item;
+    const [title, date, maker, uuid] = found.item;
     el("reveal-img").src = found.url;
     el("reveal-img").alt = title;
-    el("reveal-title").textContent = title || "Untitled";
+    // The title is a link to the item at NYPL. It opens in a new tab so the slack, and the image, stay here.
+    el("reveal-link").textContent = title || "Untitled";
+    el("reveal-link").href = itemPage(uuid);
     el("reveal-info").textContent = [date, maker].filter(Boolean).join(" · ");
     el("reveal-found").hidden = false;
     el("reveal").hidden = false;
@@ -417,6 +421,7 @@
       el("reveal-found").hidden = true;
       el("reveal-missing").hidden = true;
       el("reveal-img").removeAttribute("src");
+      el("reveal-link").removeAttribute("href");
     }, SINK);
   }
 
