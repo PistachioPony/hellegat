@@ -25,12 +25,13 @@
   const noaaDate = ms => { const d = new Date(ms); return d.getUTCFullYear() + pad(d.getUTCMonth() + 1) + pad(d.getUTCDate()); };
   const noaaStamp = ms => { const d = new Date(ms); return noaaDate(ms) + " " + pad(d.getUTCHours()) + ":" + pad(d.getUTCMinutes()); };
   const icsStamp = ms => { const d = new Date(ms); return noaaDate(ms) + "T" + pad(d.getUTCHours()) + pad(d.getUTCMinutes()) + "00Z"; };
-  // We ask NOAA for GMT, so "2026-10-29 16:37" is read as UTC and shown in New York time.
+  // We ask NOAA for GMT, so "2026-10-29 16:37" is read as UTC and shown in the visitor's own time.
   const parseTime = s => Date.parse(s.replace(" ", "T") + ":00Z");
-  const clock = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit" }).format;
-  const clockSeconds = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit", second: "2-digit" }).format;
-  const nyHour = ms => Number(new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", hourCycle: "h23" }).format(ms));
-  const nyDay = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format;
+  const clock = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" }).format;
+  const clockSeconds = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", second: "2-digit" }).format;
+  const nyClock = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit" }).format; // the river's own time
+  const localHour = ms => Number(new Intl.DateTimeFormat("en-US", { hour: "numeric", hourCycle: "h23" }).format(ms));
+  const localDay = new Intl.DateTimeFormat("en-CA").format;
   const fmtFt = v => (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(1) + " ft";
   // fmtCount turns the time left into the countdown you see
   const fmtCount = ms => {
@@ -221,7 +222,7 @@
     }
     ctx.textAlign = "center"; ctx.textBaseline = "top";
     for (let t = Math.ceil(t0 / HOUR) * HOUR; t <= t1; t += HOUR) {
-      if (nyHour(t) % 2) continue;
+      if (localHour(t) % 2) continue;
       ctx.fillText(clock(t).replace(":00", "").replace(" ", "").toLowerCase(), X(t), H - B + 8);
     }
 
@@ -258,7 +259,7 @@
       for (const side of sides) {
         ctx.fillStyle = side.color; ctx.beginPath(); ctx.arc(X(side.end), Y(valueAt(side.whole, side.end)), 4.5, 0, Math.PI * 2); ctx.fill();
       }
-      label(clockSeconds(reach) + " ET", X(reach), H - B - 10, "12px 'IBM Plex Mono', ui-monospace, monospace", C.ink, "center");
+      label(clockSeconds(reach), X(reach), H - B - 10, "12px 'IBM Plex Mono', ui-monospace, monospace", C.ink, "center");
     }
   }
 
@@ -329,7 +330,7 @@
     URL.revokeObjectURL(url);
   }
 
-  // The countdown to the next edge of slack, and the list of today's slacks in New York time.
+  // The countdown to the next edge of slack, and the list of today's slacks in the visitor's own time.
   function updateSlack() {
     if (!river) return;
     const now = Date.now(), slack = focusSlack(now);
@@ -341,9 +342,9 @@
     el("slack-when").textContent = begun ? "Until " + clock(slack.ends) : "The unseen surfaces, until the river exhales.";
 
     // The list shows the day of the next slack: today until the last one ends, then tomorrow.
-    const day = nyDay(slack.t);
-    el("slack-day").textContent = day === nyDay(now) ? "Today's slack" : "Tomorrow's slack";
-    const shown = river.slacks.filter(s => nyDay(s.t) === day);
+    const day = localDay(slack.t);
+    el("slack-day").textContent = day === localDay(now) ? "Today's slack" : "Tomorrow's slack";
+    const shown = river.slacks.filter(s => localDay(s.t) === day);
     // Past and current slacks are labeled; every future slack gets a button that remembers its own times.
     // The list is rebuilt every second but only written to the page when it changes, so a click on a button isn't lost mid-rebuild.
     const html = shown.map(s => {
@@ -353,6 +354,11 @@
       return `<li class="${state}"><span>${clock(s.begins)} to ${clock(s.ends)}</span><span>${label}</span></li>`;
     }).join("");
     if (html !== slacksHtml) el("slacks").innerHTML = slacksHtml = html;
+
+    // For a visitor whose clock reads differently from New York's, the time on the river itself
+    const away = clock(now) !== nyClock(now);
+    el("river-clock").hidden = !away;
+    if (away) el("river-clock").textContent = `It's now ${nyClock(now)} at Hell Gate, NYC`;
   }
 
   // What the water actually did at time t, or null if NOAA hasn't reported it yet.
@@ -485,7 +491,7 @@
 
   // One listener on the slack list handles every remind me button. The buttons are replaced whenever the list changes,
   // but the list itself stays, and a click on a button bubbles up to it.
-  const remind = slack => saveCalendarFile("hellegat-slack-" + nyDay(slack.begins) + ".ics", calendarText(slack));
+  const remind = slack => saveCalendarFile("hellegat-slack-" + localDay(slack.begins) + ".ics", calendarText(slack));
   el("slacks").addEventListener("click", e => {
     const button = e.target.closest("button");
     if (!button) return;
