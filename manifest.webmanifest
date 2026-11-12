@@ -1,0 +1,31 @@
+{
+  "id": "/",
+  "name": "Hellegat",
+  "short_name": "Hellegat",
+  "description": "Hellegat uses live readings of the two tides that meet at Hell Gate on the East River to pick an image from the New York Public Library Collections and show it to the viewer during slack water.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#eef3f2",
+  "theme_color": "#eef3f2",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

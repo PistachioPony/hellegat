@@ -510,3 +510,6 @@
   setInterval(refresh, REFRESH);
   setInterval(tick, 1e3); // ticks the clock and keeps "now" moving between refreshes
 })();
+
+// Register the service worker, which lets the site be added to a home screen (and later, send slack notifications).
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
