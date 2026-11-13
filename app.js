@@ -498,12 +498,6 @@
     remind({ begins: Number(button.dataset.begins), ends: Number(button.dataset.ends) });
   });
 
-  // The intro's reminder is for the next slack that hasn't begun, so during slack it skips ahead to the following one.
-  el("remind-next").addEventListener("click", () => {
-    const next = river && river.slacks.find(s => s.begins > Date.now());
-    if (next) remind(next);
-  });
-
   new ResizeObserver(sizeChart).observe(document.querySelector(".wrap"));
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);
   refresh();
