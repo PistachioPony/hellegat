@@ -13,6 +13,7 @@
 <meta name="theme-color" content="#0e1619" media="(prefers-color-scheme: dark)">
 <script src="app.js" defer></script>
 <script src="map.js" defer></script>
+<script type="module" src="notify.js"></script>
 </head>
 <body>
 <main class="wrap">
@@ -35,6 +36,8 @@
       <span class="k" id="slack-label">Next slack</span>
       <span class="count" id="slack-count">…</span>
       <span class="s" id="slack-when"></span>
+      <button id="notify-btn" type="button" hidden>Notify me</button>
+      <p class="s" id="notify-msg" hidden></p>
     </div>
     <div class="today">
       <span class="k" id="slack-day">Today's slack</span>
