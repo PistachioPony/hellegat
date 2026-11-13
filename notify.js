@@ -6,6 +6,10 @@
 const button = document.getElementById("notify-btn");
 const message = document.getElementById("notify-msg");
 const offButton = document.getElementById("notify-off");
+// A second Notify me at the bottom of the slack reveal, for visitors who won't wait for the image to sink.
+// It shows only to devices that aren't subscribed, and only replies to its own tap.
+const revealButton = document.getElementById("reveal-notify-btn");
+const revealMessage = document.getElementById("reveal-notify-msg");
 
 // Placeholder wording; Maria writes the final text.
 const TEXT = {
@@ -33,9 +37,10 @@ const FIREBASE_CONFIG = {
 const VAPID_KEY = "BNhQVwuIJ_AAoQJtIExm6gAWSfBASOhCmF6hL-z46VSom6NZThL-XoYmramU2iBFVHvjsRQKrSfNmB1hZgFweJo";
 const FIREBASE_CDN = "https://www.gstatic.com/firebasejs/12.14.0/";
 
-function show(text) {
-  message.textContent = text;
-  message.hidden = false;
+// Shows a message under the countdown's button, or under whichever button was tapped.
+function show(text, where = message) {
+  where.textContent = text;
+  where.hidden = false;
 }
 
 // iPads report themselves as Macs, so a "Mac" with a touchscreen counts as an iPad.
@@ -50,16 +55,20 @@ function isStandalone() {
 }
 
 // The two views: subscribed (a note and a Turn off link) or not (the Notify me button).
+// The reveal only ever has its button (when not subscribed) or nothing.
 function showSubscribed() {
   button.hidden = true;
   show(TEXT.subscribed);
   offButton.hidden = false;
+  revealButton.hidden = true;
 }
 
 function showNotSubscribed(text) {
   offButton.hidden = true;
   button.hidden = false;
   if (text) show(text);
+  revealButton.hidden = false;
+  revealMessage.hidden = true;
 }
 
 // Is this device already subscribed? The browser knows, so no Firebase or Firestore is needed to ask.
@@ -105,13 +114,14 @@ function loadFirebase() {
   return firebase;
 }
 
-async function subscribe() {
+// Returns how it ended (a TEXT name), so the tapped button's own message can say so.
+async function subscribe(where) {
   // Ask first, while the tap is still fresh: browsers ignore permission requests that a person didn't trigger.
   const permission = await Notification.requestPermission();
-  if (permission === "denied") return show(TEXT.blocked);
-  if (permission !== "granted") return show(TEXT.dismissed);
+  if (permission === "denied") return "blocked";
+  if (permission !== "granted") return "dismissed";
 
-  show(TEXT.working);
+  show(TEXT.working, where);
   const { db, messaging, getToken, doc, setDoc, serverTimestamp } = await loadFirebase();
 
   // Use Hellegat's own service worker (sw.js), not Firebase's default firebase-messaging-sw.js.
@@ -121,6 +131,7 @@ async function subscribe() {
   // Exactly the shape the Firestore rules allow: the token as the document's name, plus the server's clock.
   await setDoc(doc(db, "subscriptions", token), { token, created: serverTimestamp() });
   showSubscribed();
+  return "subscribed";
 }
 
 // Turn off: remove this device's subscription from Firestore, then have the browser drop it too.
@@ -147,17 +158,24 @@ offButton.addEventListener("click", async () => {
   }
 });
 
-button.addEventListener("click", async () => {
-  const where = situation();
-  if (where !== "ready") return show(TEXT[where]);
-
-  button.disabled = true;
-  try {
-    await subscribe();
-  } catch (err) {
-    console.error("Notify me failed:", err);
-    show(TEXT.failed);
-  } finally {
-    button.disabled = false;
+// Both Notify me buttons work the same way; each reply appears under the button that was tapped.
+async function onNotifyTap(tapped, where) {
+  let outcome = situation();
+  if (outcome === "ready") {
+    tapped.disabled = true;
+    try {
+      outcome = await subscribe(where);
+    } catch (err) {
+      console.error("Notify me failed:", err);
+      outcome = "failed";
+    } finally {
+      tapped.disabled = false;
+    }
   }
-});
+  show(TEXT[outcome], where);
+  // In the reveal the button steps aside after answering, unless trying again could help.
+  if (tapped === revealButton && outcome !== "failed" && outcome !== "dismissed") revealButton.hidden = true;
+}
+
+button.addEventListener("click", () => onNotifyTap(button, message));
+revealButton.addEventListener("click", () => onNotifyTap(revealButton, revealMessage));
