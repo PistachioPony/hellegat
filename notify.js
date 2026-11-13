@@ -5,6 +5,7 @@
 
 const button = document.getElementById("notify-btn");
 const message = document.getElementById("notify-msg");
+const offButton = document.getElementById("notify-off");
 
 // Placeholder wording; Maria writes the final text.
 const TEXT = {
@@ -15,6 +16,8 @@ const TEXT = {
   working: "Subscribing…",
   subscribed: "You'll be notified before slack.",
   failed: "Something went wrong. Please try again.",
+  turningOff: "Turning off…",
+  off: "Notifications are off.",
 };
 
 // Firebase's public settings for the Hellegat project. These identify the project; they are not secrets.
@@ -46,8 +49,31 @@ function isStandalone() {
   return matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
 }
 
-if (new URLSearchParams(location.search).has("notify") || isStandalone()) {
+// The two views: subscribed (a note and a Turn off link) or not (the Notify me button).
+function showSubscribed() {
+  button.hidden = true;
+  show(TEXT.subscribed);
+  offButton.hidden = false;
+}
+
+function showNotSubscribed(text) {
+  offButton.hidden = true;
   button.hidden = false;
+  if (text) show(text);
+}
+
+// Is this device already subscribed? The browser knows, so no Firebase or Firestore is needed to ask.
+async function isSubscribed() {
+  const canPush = "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+  if (!canPush || Notification.permission !== "granted") return false;
+  const registration = await navigator.serviceWorker.getRegistration();
+  return Boolean(registration && await registration.pushManager.getSubscription());
+}
+
+if (new URLSearchParams(location.search).has("notify") || isStandalone()) {
+  isSubscribed()
+    .then(subscribed => subscribed ? showSubscribed() : showNotSubscribed())
+    .catch(() => showNotSubscribed());
 }
 
 // Which situation is this browser in?
@@ -73,6 +99,7 @@ function loadFirebase() {
       messaging: messagingLib.getMessaging(app),
       ...firestoreLib,
       getToken: messagingLib.getToken,
+      deleteToken: messagingLib.deleteToken,
     };
   });
   return firebase;
@@ -93,8 +120,32 @@ async function subscribe() {
 
   // Exactly the shape the Firestore rules allow: the token as the document's name, plus the server's clock.
   await setDoc(doc(db, "subscriptions", token), { token, created: serverTimestamp() });
-  show(TEXT.subscribed);
+  showSubscribed();
 }
+
+// Turn off: remove this device's subscription from Firestore, then have the browser drop it too.
+// Asking Firebase for the token again returns the same one this browser already has.
+async function unsubscribe() {
+  show(TEXT.turningOff);
+  const { db, messaging, getToken, deleteToken, doc, deleteDoc } = await loadFirebase();
+  const serviceWorkerRegistration = await navigator.serviceWorker.ready;
+  const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration });
+  await deleteDoc(doc(db, "subscriptions", token));
+  await deleteToken(messaging);
+  showNotSubscribed(TEXT.off);
+}
+
+offButton.addEventListener("click", async () => {
+  offButton.disabled = true;
+  try {
+    await unsubscribe();
+  } catch (err) {
+    console.error("Turn off failed:", err);
+    show(TEXT.failed);
+  } finally {
+    offButton.disabled = false;
+  }
+});
 
 button.addEventListener("click", async () => {
   const where = situation();
