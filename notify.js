@@ -1,12 +1,10 @@
 // Hellegat's Notify me button: subscribes this browser to slack notifications.
-// Still being built, so the button stays hidden unless the address ends in ?notify.
+// Still being built, so the button is hidden from browser visitors unless the address ends in ?notify.
+// It always shows in Hellegat opened from a Home Screen icon: that always starts at plain "/",
+// and on iPhone it's the only place notifications can work.
 
 const button = document.getElementById("notify-btn");
 const message = document.getElementById("notify-msg");
-
-if (new URLSearchParams(location.search).has("notify")) {
-  button.hidden = false;
-}
 
 // Placeholder wording; Maria writes the final text.
 const TEXT = {
@@ -46,6 +44,10 @@ function isIOS() {
 // True when Hellegat was opened from its Home Screen icon rather than in a browser tab.
 function isStandalone() {
   return matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+}
+
+if (new URLSearchParams(location.search).has("notify") || isStandalone()) {
+  button.hidden = false;
 }
 
 // Which situation is this browser in?
