@@ -1,7 +1,4 @@
 // Hellegat's Notify me button: subscribes this browser to slack notifications.
-// Still being built, so the button is hidden from browser visitors unless the address ends in ?notify.
-// It always shows in Hellegat opened from a Home Screen icon: that always starts at plain "/",
-// and on iPhone it's the only place notifications can work.
 
 const button = document.getElementById("notify-btn");
 const message = document.getElementById("notify-msg");
@@ -13,14 +10,22 @@ const revealMessage = document.getElementById("reveal-notify-msg");
 
 // Placeholder wording; Maria writes the final text.
 const TEXT = {
-  addToHomeScreen: "On iPhone, notifications come only from Hellegat on your Home Screen. Tap the Share button, then Add to Home Screen. Open Hellegat from its new icon and tap Notify me there.",
+  // Maria's wording. The \n line breaks show as separate lines (white-space: pre-line in style.css).
+  addToHomeScreen: "Add the app icon to your HOME SCREEN for notifications following these steps:\n"
+    + "1. Tap the three dots at the bottom of your screen\n"
+    + "2. Share\n"
+    + "3. More\n"
+    + "4. Add to Home Screen\n"
+    + "5. Add\n"
+    + "IMPORTANT: \"Add to Favorites\" or \"Add Bookmark\" won't work.\n"
+    + "Then open the app from the icon and tap Notify me there. You will be able to unsubscribe from there at anytime.",
   blocked: "Notifications are blocked for Hellegat in this browser. You can allow them in the browser's settings for this site.",
   unsupported: "This browser can't receive notifications. The Remind me buttons can add a slack to your calendar instead.",
   dismissed: "Notifications weren't turned on. Tap Notify me to try again.",
   working: "Subscribing…",
-  subscribed: "You'll be notified before slack.",
+  subscribed: "You'll be notified when slack begins.",
   failed: "Something went wrong. Please try again.",
-  turningOff: "Turning off…",
+  turningOff: "Unsubscribing…",
   off: "Notifications are off.",
 };
 
@@ -79,11 +84,10 @@ async function isSubscribed() {
   return Boolean(registration && await registration.pushManager.getSubscription());
 }
 
-if (new URLSearchParams(location.search).has("notify") || isStandalone()) {
-  isSubscribed()
-    .then(subscribed => subscribed ? showSubscribed() : showNotSubscribed())
-    .catch(() => showNotSubscribed());
-}
+// On arrival, show whichever view fits this device.
+isSubscribed()
+  .then(subscribed => subscribed ? showSubscribed() : showNotSubscribed())
+  .catch(() => showNotSubscribed());
 
 // Which situation is this browser in?
 function situation() {
