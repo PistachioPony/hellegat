@@ -132,8 +132,10 @@ async function subscribe(where) {
   const serviceWorkerRegistration = await navigator.serviceWorker.ready;
   const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration });
 
-  // Exactly the shape the Firestore rules allow: the token as the document's name, plus the server's clock.
-  await setDoc(doc(db, "subscriptions", token), { token, created: serverTimestamp() });
+  // Exactly the shape the Firestore rules allow: the token as the document's name, the server's clock,
+  // and this browser's time zone (e.g. "Europe/Paris") so slacks during the subscriber's own night are skipped.
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  await setDoc(doc(db, "subscriptions", token), { token, created: serverTimestamp(), ...(timeZone && { timeZone }) });
   showSubscribed();
   return "subscribed";
 }
