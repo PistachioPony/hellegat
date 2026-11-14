@@ -19,9 +19,10 @@ const TEXT = {
     + "5. Add\n"
     + "IMPORTANT: \"Add to Favorites\" or \"Add Bookmark\" won't work.\n"
     + "Then open the app from the icon and tap Notify me there. You will be able to unsubscribe from there at anytime.",
-  blocked: "Notifications are blocked for Hellegat in this browser. You can allow them in the browser's settings for this site.",
+  blocked: "Notifications are blocked for Hellegat in this browser. To allow them, tap the small icon to the left of the web address and turn on Notifications.",
+  blockedIPhone: "Notifications are blocked for Hellegat. To allow them, open your iPhone's Settings > Notifications > Hellegat and turn on Allow Notifications.",
   unsupported: "This browser can't receive notifications. The Remind me buttons can add a slack to your calendar instead.",
-  dismissed: "Notifications weren't turned on. Tap Notify me to try again.",
+  dismissed: "Notifications weren't turned on. If no question appeared, look for a small bell icon by the web address and tap it to allow.",
   working: "Subscribing…",
   subscribed: "You'll be notified when slack begins.",
   failed: "Something went wrong. Please try again.",
@@ -178,6 +179,8 @@ async function onNotifyTap(tapped, where) {
       tapped.disabled = false;
     }
   }
+  // The Home Screen app on iPhone has no address bar, so its way out of "blocked" is the iPhone's own Settings.
+  if (outcome === "blocked" && isIOS() && isStandalone()) outcome = "blockedIPhone";
   show(TEXT[outcome], where);
   // In the reveal the button steps aside after answering, unless trying again could help.
   if (tapped === revealButton && outcome !== "failed" && outcome !== "dismissed") revealButton.hidden = true;
