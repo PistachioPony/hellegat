@@ -70,6 +70,22 @@ h1 a { color: inherit; text-decoration: none; }
 @keyframes sink { from { opacity: 1; } to { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .reveal, .reveal.sinking { animation: none; } }
 
+/* The taste: a card floating in the middle of the screen, above the page but below the live reveal.
+   Invisible and slightly low until surfaced, then it rises into view; it sinks again when the class is removed.
+   While sunk, pointer-events: none lets taps pass straight through it; while surfaced, a tap on it sinks it. */
+.taste {
+  position: fixed; left: 50%; top: 50%; z-index: 5; margin: 0;
+  width: min(820px, calc(100vw - 32px)); box-sizing: border-box; padding: 12px 14px;
+  background: var(--card); border: 1px solid var(--rule); border-radius: 4px; box-shadow: 0 8px 30px rgba(0, 0, 0, .25);
+  text-align: center; pointer-events: none;
+  opacity: 0; transform: translate(-50%, calc(-50% + 16px)); transition: opacity 1s ease, transform 1s ease;
+}
+.taste.surfaced { opacity: 1; transform: translate(-50%, -50%); pointer-events: auto; cursor: pointer; }
+.taste p { margin: 4px 0 0; }
+.taste img { display: block; max-width: 100%; max-height: 70vh; width: auto; height: auto; margin: 8px auto 4px; }
+/* With reduced motion it still fades, but doesn't rise or sink. */
+@media (prefers-reduced-motion: reduce) { .taste, .taste.surfaced { transform: translate(-50%, -50%); transition: opacity 1s ease; } }
+
 .readout { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 4px; overflow: hidden; }
 .cell { background: var(--card); padding: 12px 14px; display: grid; gap: 2px; min-width: 0; }
 .k { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 6px; }

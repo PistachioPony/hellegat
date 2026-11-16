@@ -505,5 +505,27 @@
   setInterval(tick, 1e3); // ticks the clock and keeps "now" moving between refreshes
 })();
 
+// The taste: tapping "like this" in the intro surfaces a past slack image, which sinks on its own after TASTE_STAY,
+// or sooner with a tap anywhere. Tapping "like this" again while it's up also sinks it.
+const TASTE_STAY = 6000; // milliseconds, counted from the tap
+const taste = document.getElementById("taste"), tasteLink = document.getElementById("taste-link");
+if (taste && tasteLink) {
+  let sinkTimer = null;
+  const sinkTaste = () => {
+    clearTimeout(sinkTimer);
+    taste.classList.remove("surfaced");
+    document.removeEventListener("click", sinkTaste);
+  };
+  tasteLink.addEventListener("click", event => {
+    event.stopPropagation(); // so this same tap doesn't also count as the "tap to sink"
+    if (taste.classList.contains("surfaced")) return sinkTaste();
+    taste.hidden = false;
+    // Two frames' wait, so the browser draws it invisible first and the rise is animated rather than instant.
+    requestAnimationFrame(() => requestAnimationFrame(() => taste.classList.add("surfaced")));
+    sinkTimer = setTimeout(sinkTaste, TASTE_STAY);
+    document.addEventListener("click", sinkTaste);
+  });
+}
+
 // Register the service worker, which lets the site be added to a home screen (and later, send slack notifications).
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");

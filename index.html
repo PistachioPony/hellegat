@@ -28,9 +28,21 @@
   <section class="intro">
     <p class="tagline">Between the river's breaths</p>
     <p>You have reached Hellegat, a spot in New York's East River once feared by mariners. You will wait, like sailors past, for slack water.</p>
-    <p>The timer below counts down to when slack water begins. When it reaches 0, the river will choose an image to surface from its depths. Use the moment as an omen, as a creative prompt or simply a meditation with history, before it sinks back into the water forever. Learning more about the slack image always seems to connect back to the viewer in interesting ways. Tap on the image title and search it for more information.</p>
+    <p>The timer below counts down to when slack water begins. When it reaches 0, the river will choose an image to surface from its depths, <button type="button" class="link" id="taste-link">like this</button>. Use the moment as an omen, as a creative prompt or simply a meditation with history, before it sinks back into the water forever. Learning more about the slack image always seems to connect back to the viewer in interesting ways. Tap on the image title and search it for more information.</p>
     <p>While you wait for the next slack, you can observe the river's tides, or view the animated map that shows the tide reaching Hellegat from two directions, and you can <a href="about.html">learn more about the project here</a>.</p>
   </section>
+
+  <!-- A taste of the reveal: one real past choice, saved here. It floats above the page only when the visitor taps "like this"
+       in the intro, then sinks on its own after a few seconds, or sooner with a tap. Hidden until then, so it can't flash
+       while the page loads. The title is not a link, so it reads as a taste rather than the live thing, and no one leaves for it. -->
+  <figure class="taste" id="taste" hidden>
+    <p class="s">On November 10, the river chose this.</p>
+    <img src="tillamook-rock-1901.jpg" width="1200" height="736" alt="Hand-colored postcard of Tillamook Rock lighthouse standing on a rock at sea, with waves breaking around it.">
+    <figcaption>
+      <p class="reveal-title">Tillamook Rock And Light House, Portland, Oregon.</p>
+      <p class="s">1901</p>
+    </figcaption>
+  </figure>
 
   <section class="slack">
     <div class="countdown">
