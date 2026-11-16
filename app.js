@@ -350,7 +350,7 @@
     const html = shown.map(s => {
       const state = s.ends <= now ? "past" : s !== slack ? "later" : begun ? "now" : "next";
       const label = state === "past" || state === "now" ? state
-        : `<button type="button" data-begins="${s.begins}" data-ends="${s.ends}">remind me</button>`;
+        : `<button type="button" data-begins="${s.begins}" data-ends="${s.ends}">add to cal</button>`;
       return `<li class="${state}"><span>${clock(s.begins)} to ${clock(s.ends)}</span><span>${label}</span></li>`;
     }).join("");
     if (html !== slacksHtml) el("slacks").innerHTML = slacksHtml = html;
